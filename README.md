@@ -93,7 +93,7 @@ uvicorn main:app --reload
 
 ### Unimplemented Cases (Documented) 
 
-**Cart-wise:** Tiered discounts, fixed amount discounts, max discount caps, minimum item count, category-based, time restrictions, user segments, shipping thresholds, minimum/maximum cart value ranges
+**Cart-wise:** fixed amount discounts, minimum item count, category-based, time restrictions, user segments, shipping thresholds, minimum/maximum cart value ranges
 
 **Product-wise:** Multiple products in single coupon, quantity-based tiers, fixed amounts, category-wide, brand-specific, variant-specific, max quantity limits, exclude sale items, bundle discounts
 
