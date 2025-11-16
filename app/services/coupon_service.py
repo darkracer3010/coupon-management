@@ -182,7 +182,7 @@ class CouponService:
         return 0.0
 
     @staticmethod
-    def _calculate_bxgy_discount(cart: Cart, details: Dict) -> float:
+    def _calculate_bxgy_discount(cart: Cart, details: Dict, repetition_limit: int = 1) -> float:
         """
         Calculate discount for BxGy coupon
         Buy products work with OR logic - any combination counts toward total sets
@@ -190,7 +190,6 @@ class CouponService:
         """
         buy_products = details.get("buy_products", [])
         get_products = details.get("get_products", [])
-        repetition_limit = details.get("repition_limit", 1)
 
         cart_map = {item.product_id: item for item in cart.items}
 
@@ -241,7 +240,9 @@ class CouponService:
                 elif coupon.type == "product-wise":
                     discount = CouponService._calculate_product_wise_discount(cart, coupon.details)
                 elif coupon.type == "bxgy":
-                    discount = CouponService._calculate_bxgy_discount(cart, coupon.details)
+                    discount = CouponService._calculate_bxgy_discount(
+                        cart, coupon.details, coupon.repetition_limit or 1
+                    )
 
                 if discount > 0:
                     applicable.append(ApplicableCoupon(
@@ -322,7 +323,7 @@ class CouponService:
         elif coupon.type == "bxgy":
             buy_products = coupon.details.get("buy_products", [])
             get_products = coupon.details.get("get_products", [])
-            repetition_limit = coupon.details.get("repition_limit", 1)
+            repetition_limit = coupon.repetition_limit or 1
 
             # Create cart lookup
             cart_map = {item.product_id: item for item in cart.items}
@@ -343,31 +344,40 @@ class CouponService:
             # Apply repetition limit
             applicable_times = min(total_buy_sets, repetition_limit)
 
-            # Create get products lookup for discount calculation
-            get_products_map = {
-                gp.get("product_id"): gp.get("quantity") 
-                for gp in get_products
-            }
+            # Calculate free quantities for each get product
+            free_quantities = {}
+            for get_prod in get_products:
+                prod_id = get_prod.get("product_id")
+                free_qty_per_set = get_prod.get("quantity")
+                total_free_qty = free_qty_per_set * applicable_times
+                free_quantities[prod_id] = total_free_qty
             
+            # Build updated items - add free quantities to existing cart items
             for item in cart.items:
                 item_discount = 0.0
+                item_quantity = item.quantity
                 
-                if item.product_id in get_products_map:
-                    free_qty_per_set = get_products_map[item.product_id]
-                    total_free_qty = free_qty_per_set * applicable_times
-                    actual_free_qty = min(total_free_qty, item.quantity)
-                    item_discount = item.price * actual_free_qty
+                if item.product_id in free_quantities:
+                    free_qty = free_quantities[item.product_id]
+                    item_discount = item.price * free_qty
                     total_discount += item_discount
+                    # Add free items to quantity
+                    item_quantity += free_qty
                 
                 updated_items.append(UpdatedCartItem(
                     product_id=item.product_id,
-                    quantity=item.quantity,
+                    quantity=item_quantity,
                     price=item.price,
                     total_discount=round(item_discount, 2)
                 ))
 
         # Calculate totals
-        cart_total = CouponService._calculate_cart_total(cart)
+        # For BxGy, total_price includes free items
+        if coupon.type == "bxgy":
+            cart_total = sum(item.price * item.quantity for item in updated_items)
+        else:
+            cart_total = CouponService._calculate_cart_total(cart)
+        
         final_price = cart_total - total_discount
 
         return UpdatedCart(

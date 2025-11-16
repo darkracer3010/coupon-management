@@ -93,15 +93,13 @@ uvicorn main:app --reload
 
 ### Unimplemented Cases (Documented) 
 
-**Cart-wise:** fixed amount discounts, minimum item count, category-based, time restrictions, user segments, shipping thresholds, minimum/maximum cart value ranges
+**Cart-wise:** fixed amount discounts, minimum item count, category-based, user segments, shipping thresholds, minimum/maximum cart value ranges
 
-**Product-wise:** Multiple products in single coupon, quantity-based tiers, fixed amounts, category-wide, brand-specific, variant-specific, max quantity limits, exclude sale items, bundle discounts
-
-**BxGy:** AND logic for buy products (must buy all specified), same-product BxGy (buy X get more of same free), tiered BxGy (different tiers), percentage discount instead of free, cheapest item free, category-based, mix and match, progressive discounts, minimum value requirements, cross-category offers
+**Product-wise:** Multiple products in single coupon, quantity-based tiers, fixed amounts, max quantity limits, bundle discounts
 
 **General:** Stackable coupons, priority rules, user-specific tracking, purchase history requirements, geographic restrictions, payment method restrictions, analytics dashboard, referral coupons, loyalty points integration, auto-apply best coupon, coupon notifications
 
-**Edge Cases:** Negative prices prevention, floating point precision, concurrent usage control, partial returns handling, currency conversion, tax calculation, inventory validation, cart modifications during checkout, fraud detection, fractional quantities, race conditions on usage limits
+**Edge Cases:** floating point precision, concurrent usage control, currency conversion, tax calculation, inventory validation
 
 ## Limitations
 
@@ -115,7 +113,7 @@ uvicorn main:app --reload
 8. **Simple BxGy logic** - Uses OR logic for buy products; doesn't support AND conditions
 9. **No category support** - Products identified only by ID, no category/brand grouping
 10. **No concurrent control** - No distributed locking for usage limits in high-traffic scenarios
-11. **No audit trail** - Doesn't log detailed coupon usage history per application
+11. **No audit trail** - No link between coupons and transaction which is limitation for coupon and usage tracking
 12. **No rate limiting** - API endpoints not protected against abuse
 13. **Case-insensitive codes** - Coupon codes are case-insensitive (SAVE10 = save10)
 14. **Auto-expiry only** - Default 1-day expiry; no support for "valid until used" coupons
