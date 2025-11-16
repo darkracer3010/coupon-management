@@ -1,2 +1,32 @@
-uv.lock
+# Python
+*.pyc
 .python-version
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Virtual Environment
+.venv/
+venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+
+# UV
+uv.lock
