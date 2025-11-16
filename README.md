@@ -26,6 +26,10 @@ uv run python setup_db.py
 # 4. Run server
 uv run python main.py
 
+OR 
+
+uvicorn main:app --reload
+
 # 5. Access API docs
 # http://localhost:8000/docs
 ```
