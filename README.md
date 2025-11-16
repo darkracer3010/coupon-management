@@ -185,7 +185,7 @@ coupon-management/
 ├── .gitignore                        # Git ignore rules
 ├── main.py                           # Application entry point
 ├── pyproject.toml                    # Dependencies & config
-├── README.md                         # This file
+├── README.md                         # README File
 ```
 
 ## Error Handling
