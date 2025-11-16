@@ -140,6 +140,7 @@ uvicorn main:app --reload
 16. **No partial discounts** - Either full discount applies or none (no partial threshold discounts)
 17. **Stateless API** - Each request is independent; no session management
 18. **Synchronous processing** - All operations are synchronous; no async/background jobs
+19. **Repetition Limit** - If repetition limit is not defined, then a coupon can be applied only once
 
 
 ## Testing
@@ -185,7 +186,6 @@ coupon-management/
 ├── main.py                           # Application entry point
 ├── pyproject.toml                    # Dependencies & config
 ├── README.md                         # This file
-└── uv.lock                           # Dependency lock file
 ```
 
 ## Error Handling
