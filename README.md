@@ -58,7 +58,7 @@ uvicorn main:app --reload
 
 ## Use Cases
 
-### Implemented Cases ✅
+### Implemented Cases 
 
 **Cart-wise:**
 - Percentage discount with minimum threshold
@@ -91,7 +91,7 @@ uvicorn main:app --reload
 - Usage statistics endpoint
 - Automatic usage counter increment on application
 
-### Unimplemented Cases (Documented) 📝
+### Unimplemented Cases (Documented) 
 
 **Cart-wise:** Tiered discounts, fixed amount discounts, max discount caps, minimum item count, category-based, time restrictions, user segments, shipping thresholds, minimum/maximum cart value ranges
 
