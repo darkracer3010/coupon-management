@@ -22,9 +22,13 @@ class CouponService:
             if existing:
                 raise HTTPException(status_code=400, detail=f"Coupon code '{coupon_data.code}' already exists")
             
-            # Extract repetition_limit from details if present (for BxGy)
+            # Extract repetition_limit from details only for BxGy coupons
             details = coupon_data.details.copy()
-            repetition_limit = details.pop('repition_limit', 1)
+            repetition_limit = None
+            
+            if coupon_data.type == "bxgy":
+                # Default to 1 if not provided for BxGy
+                repetition_limit = details.pop('repition_limit', 1)
             
             # Set expiry to 1 day from now if not provided
             expires_at = coupon_data.expires_at
@@ -90,13 +94,20 @@ class CouponService:
                 if existing:
                     raise HTTPException(status_code=400, detail=f"Coupon code '{update_data['code']}' already exists")
             
-            # Extract repetition_limit from details if present
+            # Extract repetition_limit from details only for BxGy coupons
             if 'details' in update_data and update_data['details']:
                 details = update_data['details'].copy()
-                repetition_limit = details.pop('repition_limit', None)
-                update_data['details'] = details
-                if repetition_limit is not None:
+                
+                # Only extract repition_limit if coupon type is bxgy
+                if coupon.type == "bxgy":
+                    # Default to 1 if not provided for BxGy
+                    repetition_limit = details.pop('repition_limit', 1)
                     update_data['repetition_limit'] = repetition_limit
+                else:
+                    # For cart-wise and product-wise, ensure repetition_limit is None
+                    update_data['repetition_limit'] = None
+                
+                update_data['details'] = details
             
             for field, value in update_data.items():
                 setattr(coupon, field, value)

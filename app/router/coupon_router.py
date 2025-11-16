@@ -75,22 +75,30 @@ def get_coupon_stats(id: int, db: Session = Depends(get_db)):
     if not coupon:
         raise HTTPException(status_code=404, detail="Coupon not found")
     
-    usage_percentage = 0
-    if coupon.repetition_limit:
-        usage_percentage = (coupon.times_used / coupon.repetition_limit) * 100
-    
-    return {
+    # Base response for all coupon types
+    response = {
         "coupon_id": coupon.id,
         "code": coupon.code,
         "type": coupon.type,
-        "times_used": coupon.times_used,
-        "repetition_limit": coupon.repetition_limit,
-        "usage_percentage": round(usage_percentage, 2),
-        "remaining_uses": coupon.repetition_limit - coupon.times_used if coupon.repetition_limit else None,
-        "is_exhausted": coupon.repetition_limit and coupon.times_used >= coupon.repetition_limit,
         "is_active": coupon.is_active,
         "expires_at": coupon.expires_at
     }
+    
+    # Add repetition_limit stats only for BxGy coupons
+    if coupon.type == "bxgy":
+        usage_percentage = 0
+        if coupon.repetition_limit:
+            usage_percentage = (coupon.times_used / coupon.repetition_limit) * 100
+        
+        response.update({
+            "times_used": coupon.times_used,
+            "repetition_limit": coupon.repetition_limit,
+            "usage_percentage": round(usage_percentage, 2),
+            "remaining_uses": coupon.repetition_limit - coupon.times_used if coupon.repetition_limit else None,
+            "is_exhausted": coupon.repetition_limit and coupon.times_used >= coupon.repetition_limit
+        })
+    
+    return response
 
 
 @router.post("/apply-coupon/{id}", response_model=ApplyCouponResponse)
