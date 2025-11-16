@@ -203,6 +203,6 @@ coupon-management/
 5. Category-based coupons
 6. User-specific coupons
 7. Analytics dashboard
-8. Coupon usage history
+8. Advanced Coupon usage history
 
 
