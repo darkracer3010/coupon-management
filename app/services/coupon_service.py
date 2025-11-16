@@ -16,94 +16,113 @@ class CouponService:
     @staticmethod
     def create_coupon(db: Session, coupon_data: CouponCreate) -> Coupon:
         """Create a new coupon"""
-        # Check if code already exists
-        existing = db.query(Coupon).filter(Coupon.code == coupon_data.code).first()
-        if existing:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=400, detail=f"Coupon code '{coupon_data.code}' already exists")
-        
-        # Extract repetition_limit from details if present (for BxGy)
-        details = coupon_data.details.copy()
-        repetition_limit = details.pop('repition_limit', None)
-        
-        # Set expiry to 1 day from now if not provided
-        from datetime import timedelta
-        expires_at = coupon_data.expires_at
-        if expires_at is None:
-            expires_at = get_ist_time() + timedelta(days=1)
-        
-        coupon = Coupon(
-            code=coupon_data.code,
-            type=coupon_data.type,
-            details=details,
-            expires_at=expires_at,
-            repetition_limit=repetition_limit
-        )
-        db.add(coupon)
-        db.commit()
-        db.refresh(coupon)
-        return coupon
+        try:
+            # Check if code already exists
+            existing = db.query(Coupon).filter(Coupon.code == coupon_data.code).first()
+            if existing:
+                raise HTTPException(status_code=400, detail=f"Coupon code '{coupon_data.code}' already exists")
+            
+            # Extract repetition_limit from details if present (for BxGy)
+            details = coupon_data.details.copy()
+            repetition_limit = details.pop('repition_limit', 1)
+            
+            # Set expiry to 1 day from now if not provided
+            expires_at = coupon_data.expires_at
+            if expires_at is None:
+                expires_at = get_ist_time() + timedelta(days=1)
+            
+            coupon = Coupon(
+                code=coupon_data.code,
+                type=coupon_data.type,
+                details=details,
+                expires_at=expires_at,
+                repetition_limit=repetition_limit
+            )
+            db.add(coupon)
+            db.flush()  # Flush to get the ID without committing
+            db.refresh(coupon)
+            return coupon
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def get_all_coupons(db: Session) -> List[Coupon]:
         """Retrieve all coupons"""
-        return db.query(Coupon).all()
+        try:
+            return db.query(Coupon).all()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def get_coupon_by_id(db: Session, coupon_id: int) -> Optional[Coupon]:
         """Retrieve a specific coupon by ID"""
-        return db.query(Coupon).filter(Coupon.id == coupon_id).first()
+        try:
+            return db.query(Coupon).filter(Coupon.id == coupon_id).first()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
     @staticmethod
     def get_coupon_by_code(db: Session, code: str) -> Optional[Coupon]:
         """Retrieve a specific coupon by code (case-insensitive)"""
-        return db.query(Coupon).filter(Coupon.code.ilike(code)).first()
+        try:
+            return db.query(Coupon).filter(Coupon.code.ilike(code)).first()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def update_coupon(db: Session, coupon_id: int, coupon_data: CouponUpdate) -> Optional[Coupon]:
         """Update a specific coupon"""
-        coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
-        if not coupon:
-            return None
+        try:
+            coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
+            if not coupon:
+                return None
 
-        update_data = coupon_data.model_dump(exclude_unset=True)
-        
-        # Check if code is being updated and if it already exists
-        if 'code' in update_data:
-            existing = db.query(Coupon).filter(
-                Coupon.code == update_data['code'],
-                Coupon.id != coupon_id
-            ).first()
-            if existing:
-                from fastapi import HTTPException
-                raise HTTPException(status_code=400, detail=f"Coupon code '{update_data['code']}' already exists")
-        
-        # Extract repetition_limit from details if present
-        if 'details' in update_data and update_data['details']:
-            details = update_data['details'].copy()
-            repetition_limit = details.pop('repition_limit', None)
-            update_data['details'] = details
-            if repetition_limit is not None:
-                update_data['repetition_limit'] = repetition_limit
-        
-        for field, value in update_data.items():
-            setattr(coupon, field, value)
+            update_data = coupon_data.model_dump(exclude_unset=True)
+            
+            # Check if code is being updated and if it already exists
+            if 'code' in update_data:
+                existing = db.query(Coupon).filter(
+                    Coupon.code == update_data['code'],
+                    Coupon.id != coupon_id
+                ).first()
+                if existing:
+                    raise HTTPException(status_code=400, detail=f"Coupon code '{update_data['code']}' already exists")
+            
+            # Extract repetition_limit from details if present
+            if 'details' in update_data and update_data['details']:
+                details = update_data['details'].copy()
+                repetition_limit = details.pop('repition_limit', None)
+                update_data['details'] = details
+                if repetition_limit is not None:
+                    update_data['repetition_limit'] = repetition_limit
+            
+            for field, value in update_data.items():
+                setattr(coupon, field, value)
 
-        coupon.updated_at = get_ist_time()
-        db.commit()
-        db.refresh(coupon)
-        return coupon
+            coupon.updated_at = get_ist_time()
+            db.flush()  # Flush changes without committing
+            db.refresh(coupon)
+            return coupon
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def delete_coupon(db: Session, coupon_id: int) -> bool:
         """Delete a specific coupon"""
-        coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
-        if not coupon:
-            return False
+        try:
+            coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
+            if not coupon:
+                return False
 
-        db.delete(coupon)
-        db.commit()
-        return True
+            db.delete(coupon)
+            db.flush()  # Flush deletion without committing
+            return True
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def _is_coupon_valid(coupon: Coupon) -> bool:
@@ -197,44 +216,52 @@ class CouponService:
     @staticmethod
     def get_applicable_coupons(db: Session, cart: Cart) -> List[ApplicableCoupon]:
         """Get all applicable coupons for a cart with calculated discounts"""
-        coupons = db.query(Coupon).all()
-        applicable = []
+        try:
+            coupons = db.query(Coupon).all()
+            applicable = []
 
-        for coupon in coupons:
-            if not CouponService._is_coupon_valid(coupon):
-                continue
+            for coupon in coupons:
+                if not CouponService._is_coupon_valid(coupon):
+                    continue
 
-            discount = 0.0
-            if coupon.type == "cart-wise":
-                discount = CouponService._calculate_cart_wise_discount(cart, coupon.details)
-            elif coupon.type == "product-wise":
-                discount = CouponService._calculate_product_wise_discount(cart, coupon.details)
-            elif coupon.type == "bxgy":
-                discount = CouponService._calculate_bxgy_discount(cart, coupon.details)
+                discount = 0.0
+                if coupon.type == "cart-wise":
+                    discount = CouponService._calculate_cart_wise_discount(cart, coupon.details)
+                elif coupon.type == "product-wise":
+                    discount = CouponService._calculate_product_wise_discount(cart, coupon.details)
+                elif coupon.type == "bxgy":
+                    discount = CouponService._calculate_bxgy_discount(cart, coupon.details)
 
-            if discount > 0:
-                applicable.append(ApplicableCoupon(
-                    coupon_id=coupon.id,
-                    type=coupon.type,
-                    discount=round(discount, 2)
-                ))
+                if discount > 0:
+                    applicable.append(ApplicableCoupon(
+                        coupon_id=coupon.id,
+                        type=coupon.type,
+                        discount=round(discount, 2)
+                    ))
 
-        return applicable
+            return applicable
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     @staticmethod
     def apply_coupon(db: Session, coupon_id: int, cart: Cart) -> UpdatedCart:
         """Apply a specific coupon to cart and return updated cart"""
-        coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
-        
-        if not coupon:
-            raise HTTPException(status_code=404, detail="Coupon not found")
+        try:
+            coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
+            
+            if not coupon:
+                raise HTTPException(status_code=404, detail="Coupon not found")
 
-        if not CouponService._is_coupon_valid(coupon):
-            raise HTTPException(status_code=400, detail="Coupon is not valid or has expired")
-        
-        # Increment usage counter
-        coupon.times_used += 1
-        db.commit()
+            if not CouponService._is_coupon_valid(coupon):
+                raise HTTPException(status_code=400, detail="Coupon is not valid or has expired")
+            
+            # Increment usage counter
+            coupon.times_used += 1
+            db.flush()  # Flush changes without committing
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
         # Calculate discount based on coupon type
         total_discount = 0.0

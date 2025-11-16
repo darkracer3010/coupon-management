@@ -228,6 +228,28 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "coupon stats",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/coupons/4/stats",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"coupons",
+						"4",
+						"stats"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

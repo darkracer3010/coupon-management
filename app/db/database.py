@@ -24,9 +24,13 @@ def init_db():
 
 
 def get_db():
-    """Dependency for getting database session"""
+    """Dependency for getting database session with transaction management"""
     db = SessionLocal()
     try:
         yield db
+        db.commit()  # Commit if no exception
+    except Exception:
+        db.rollback()  # Rollback on any exception
+        raise
     finally:
         db.close()
