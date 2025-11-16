@@ -65,9 +65,8 @@ class TestCouponService:
         details = {
             "buy_products": [{"product_id": 1, "quantity": 2}],
             "get_products": [{"product_id": 3, "quantity": 1}],
-            "repition_limit": 1
         }
-        discount = CouponService._calculate_bxgy_discount(cart, details)
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=1)
         assert discount == 25.0
 
     def test_calculate_bxgy_discount_with_repetition(self):
@@ -79,9 +78,8 @@ class TestCouponService:
         details = {
             "buy_products": [{"product_id": 1, "quantity": 2}],
             "get_products": [{"product_id": 3, "quantity": 1}],
-            "repition_limit": 3
         }
-        discount = CouponService._calculate_bxgy_discount(cart, details)
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=3)
         assert discount == 75.0  # 3 free items at $25 each
 
     def test_calculate_bxgy_discount_insufficient_buy_products(self):
@@ -93,9 +91,8 @@ class TestCouponService:
         details = {
             "buy_products": [{"product_id": 1, "quantity": 2}],
             "get_products": [{"product_id": 3, "quantity": 1}],
-            "repition_limit": 1
         }
-        discount = CouponService._calculate_bxgy_discount(cart, details)
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=1)
         assert discount == 0.0
 
     def test_calculate_bxgy_discount_limited_get_products(self):
@@ -107,8 +104,7 @@ class TestCouponService:
         details = {
             "buy_products": [{"product_id": 1, "quantity": 2}],
             "get_products": [{"product_id": 3, "quantity": 1}],
-            "repition_limit": 5
         }
-        discount = CouponService._calculate_bxgy_discount(cart, details)
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=5)
         # Can apply 3 times (6/2), but only 2 get products available
         assert discount == 50.0  # 2 items at $25 each
