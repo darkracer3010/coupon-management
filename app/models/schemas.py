@@ -23,6 +23,7 @@ class ProductWiseDetails(BaseModel):
 class BxGyProduct(BaseModel):
     product_id: int = Field(..., gt=0)
     quantity: int = Field(..., gt=0)
+    price: Optional[float] = Field(None, gt=0, description="Price for get products")
 
 
 class BxGyDetails(BaseModel):

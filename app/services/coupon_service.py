@@ -214,12 +214,19 @@ class CouponService:
         for get_prod in get_products:
             prod_id = get_prod.get("product_id")
             free_qty_per_set = get_prod.get("quantity")
+            total_free_qty = free_qty_per_set * applicable_times
             
+            # Get price from cart if available, otherwise from coupon definition
+            price = None
             if prod_id in cart_map:
-                cart_item = cart_map[prod_id]
-                total_free_qty = free_qty_per_set * applicable_times
-                actual_free_qty = min(total_free_qty, cart_item.quantity)
-                total_discount += cart_item.price * actual_free_qty
+                price = cart_map[prod_id].price
+                actual_free_qty = min(total_free_qty, cart_map[prod_id].quantity)
+            elif "price" in get_prod:
+                price = get_prod.get("price")
+                actual_free_qty = total_free_qty
+            
+            if price:
+                total_discount += price * actual_free_qty
 
         return total_discount
 
@@ -344,16 +351,26 @@ class CouponService:
             # Apply repetition limit
             applicable_times = min(total_buy_sets, repetition_limit)
 
-            # Calculate free quantities for each get product
+            # Calculate free quantities and track prices
             free_quantities = {}
+            get_product_prices = {}
+            
             for get_prod in get_products:
                 prod_id = get_prod.get("product_id")
                 free_qty_per_set = get_prod.get("quantity")
                 total_free_qty = free_qty_per_set * applicable_times
                 free_quantities[prod_id] = total_free_qty
+                
+                # Get price from cart if available, otherwise from coupon definition
+                if prod_id in cart_map:
+                    get_product_prices[prod_id] = cart_map[prod_id].price
+                elif "price" in get_prod:
+                    get_product_prices[prod_id] = get_prod.get("price")
             
             # Build updated items - add free quantities to existing cart items
+            cart_product_ids = set()
             for item in cart.items:
+                cart_product_ids.add(item.product_id)
                 item_discount = 0.0
                 item_quantity = item.quantity
                 
@@ -370,6 +387,22 @@ class CouponService:
                     price=item.price,
                     total_discount=round(item_discount, 2)
                 ))
+            
+            # Add get products that are NOT in the original cart
+            for prod_id, free_qty in free_quantities.items():
+                if prod_id not in cart_product_ids:
+                    # Product not in cart - add it as a new item (all free)
+                    if prod_id in get_product_prices:
+                        price = get_product_prices[prod_id]
+                        item_discount = price * free_qty
+                        total_discount += item_discount
+                        
+                        updated_items.append(UpdatedCartItem(
+                            product_id=prod_id,
+                            quantity=free_qty,
+                            price=price,
+                            total_discount=round(item_discount, 2)
+                        ))
 
         # Calculate totals
         # For BxGy, total_price includes free items

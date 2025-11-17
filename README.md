@@ -75,7 +75,6 @@ uvicorn main:app --reload
 **BxGy:**
 - Flexible buy/get product arrays (OR logic - any combination counts)
 - Repetition limit support (extracted from details and stored separately)
-- Partial fulfillment handling (gives free items up to available quantity)
 - Minimum quantity validation
 - Multiple buy products can contribute to same offer
 - Calculates total sets from all qualifying products
@@ -139,6 +138,7 @@ uvicorn main:app --reload
 17. **Stateless API** - Each request is independent; no session management
 18. **Synchronous processing** - All operations are synchronous; no async/background jobs
 19. **Repetition Limit** - If repetition limit is not defined, then a coupon can be applied only once
+20. **BxGy get product pricing** - Prices for get products are specified during coupon creation since free products may not exist in the cart at the time of application
 
 
 ## Testing
