@@ -108,3 +108,36 @@ class TestCouponService:
         discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=5)
         # Can apply 3 times (6/2), but only 2 get products available
         assert discount == 50.0  # 2 items at $25 each
+
+    def test_calculate_bxgy_discount_with_price_in_coupon(self):
+        """Test BxGy when get product is not in cart but has price in coupon"""
+        cart = Cart(items=[
+            CartItem(product_id=1, quantity=6, price=50.0),
+            # Product 3 is NOT in cart
+        ])
+        details = {
+            "buy_products": [{"product_id": 1, "quantity": 2}],
+            "get_products": [{"product_id": 3, "quantity": 1, "price": 25.0}],  # Price in coupon
+        }
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=3)
+        # Can apply 3 times (6/2), get 3 free items at $25 each
+        assert discount == 75.0  # 3 items at $25 each
+
+    def test_calculate_bxgy_discount_mixed_sources(self):
+        """Test BxGy with price from both cart and coupon"""
+        cart = Cart(items=[
+            CartItem(product_id=1, quantity=4, price=50.0),
+            CartItem(product_id=3, quantity=1, price=30.0),  # Product 3 in cart with different price
+        ])
+        details = {
+            "buy_products": [{"product_id": 1, "quantity": 2}],
+            "get_products": [
+                {"product_id": 3, "quantity": 1, "price": 25.0},  # Price in coupon
+                {"product_id": 4, "quantity": 1, "price": 20.0}   # Product 4 not in cart
+            ],
+        }
+        discount = CouponService._calculate_bxgy_discount(cart, details, repetition_limit=2)
+        # Can apply 2 times (4/2)
+        # Product 3: 1 in cart, need 2 free, so only 1 free at cart price $30
+        # Product 4: 0 in cart, need 2 free, so 2 free at coupon price $20 each
+        assert discount == 70.0  # (1 × $30) + (2 × $20)
