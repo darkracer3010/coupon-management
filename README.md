@@ -24,10 +24,11 @@ uv run python setup_db.py
 # DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/coupons_db
 
 # 4. Run server
+# Method A:
 uv run python main.py
 
 OR 
-
+# Method B:
 uvicorn main:app --reload
 
 # 5. Access API docs
@@ -87,7 +88,7 @@ uvicorn main:app --reload
 - Comprehensive error handling
 - Alphanumeric coupon codes (case-insensitive lookup)
 - IST timezone for all timestamps
-- Usage statistics endpoint
+- Usage statistics endpoint (particularly useful for monitoring BxGy coupon applications)
 - Automatic usage counter increment on application
 
 ### Unimplemented Cases (Documented) 

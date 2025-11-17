@@ -19,7 +19,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"code\": \"BUY2GET1\",\n  \"type\": \"bxgy\",\n  \"details\": {\n    \"buy_products\": [{\"product_id\": 1, \"quantity\": 3}],\n    \"get_products\": [{\"product_id\": 3, \"quantity\": 1}],\n    \"repition_limit\": 2\n  }\n}\n\n// {\n//     \"code\":\"PROD1\",\n//     \"type\": \"product-wise\",\n//     \"details\": {\n//         \"product_id\": 1,\n//         \"discount\": 20\n//     }\n// }",
+					"raw": "// {\n//     \"code\": \"B3G1\",\n//     \"type\": \"bxgy\",\n//     \"details\": {\n//         \"buy_products\": [\n//             {\n//                 \"product_id\": 1,\n//                 \"quantity\": 3,\n//                 \"price\": 50\n//             },\n//             {\n//                 \"product_id\": 2,\n//                 \"quantity\": 3,\n//                 \"price\": 30\n//             }\n//         ],\n//         \"get_products\": [\n//             {\n//                 \"product_id\": 3,\n//                 \"quantity\": 1,\n//                 \"price\": 25\n//             }\n//         ],\n//         \"repition_limit\": 2\n//     }\n//}\n{\n    \"code\":\"PROD1\",\n    \"type\": \"product-wise\",\n    \"details\": {\n        \"product_id\": 1,\n        \"discount\": 20\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
